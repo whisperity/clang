@@ -295,11 +295,27 @@ class ClangTool {
   /// \param SourcePaths The source files to run over. If a source files is
   ///        not found in Compilations, it is skipped.
   /// \param PCHContainerOps The PCHContainerOperations for loading and creating
-  /// clang modules.
+  ///        clang modules.
   ClangTool(const CompilationDatabase &Compilations,
             ArrayRef<std::string> SourcePaths,
             std::shared_ptr<PCHContainerOperations> PCHContainerOps =
                 std::make_shared<PCHContainerOperations>());
+
+  /// \brief Constructs a clang tool to run over a list of files that retrieves
+  ///        files from a specified file system.
+  ///
+  /// \param Compilations The CompilationDatabase which contains the compile
+  ///        command lines for the given source paths.
+  /// \param SourcePaths The source files to run over. If a source files is
+  ///        not found in Compilations, it is skipped.
+  /// \param PCHContainerOps The PCHContainerOperations for loading and creating
+  ///        clang modules.
+  /// \param BaseFileSystem The Clang FileSystem implementation which is to be
+  ///        used to retrieve the files.
+  ClangTool(const CompilationDatabase &Compilations,
+            ArrayRef<std::string> SourcePaths,
+            std::shared_ptr<PCHContainerOperations> PCHContainerOps,
+            llvm::IntrusiveRefCntPtr<vfs::FileSystem> BaseFileSystem);
 
   ~ClangTool();
 
