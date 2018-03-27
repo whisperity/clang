@@ -328,20 +328,16 @@ bool FrontendActionFactory::runInvocation(
 
 ClangTool::ClangTool(const CompilationDatabase &Compilations,
                      ArrayRef<std::string> SourcePaths,
-                     std::shared_ptr<PCHContainerOperations> PCHContainerOps)
-    : ClangTool(Compilations, SourcePaths, PCHContainerOps,
-                vfs::getRealFileSystem()) {}
-
-ClangTool::ClangTool(const CompilationDatabase &Compilations,
-                     ArrayRef<std::string> SourcePaths,
                      std::shared_ptr<PCHContainerOperations> PCHContainerOps,
-                     llvm::IntrusiveRefCntPtr<vfs::FileSystem> BaseFileSystem)
+                     llvm::IntrusiveRefCntPtr<vfs::FileSystem> FileSystem)
     : Compilations(Compilations), SourcePaths(SourcePaths),
       PCHContainerOps(std::move(PCHContainerOps)),
-      OverlayFileSystem(new vfs::OverlayFileSystem(BaseFileSystem)),
+      OverlayFileSystem(new vfs::OverlayFileSystem(vfs::getRealFileSystem())),
       InMemoryFileSystem(new vfs::InMemoryFileSystem),
       Files(new FileManager(FileSystemOptions(), OverlayFileSystem)),
       DiagConsumer(nullptr) {
+  if (FileSystem)
+    OverlayFileSystem->pushOverlay(FileSystem);
   OverlayFileSystem->pushOverlay(InMemoryFileSystem);
   appendArgumentsAdjuster(getClangStripOutputAdjuster());
   appendArgumentsAdjuster(getClangSyntaxOnlyAdjuster());
