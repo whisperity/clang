@@ -325,6 +325,7 @@ OverlayFileSystem::OverlayFileSystem(IntrusiveRefCntPtr<FileSystem> BaseFS) {
 }
 
 void OverlayFileSystem::pushOverlay(IntrusiveRefCntPtr<FileSystem> FS) {
+  // FIXME: OverlayFS containing another one in its stack could be flattened.
   FSList.push_back(FS);
   // Synchronize added file systems by duplicating the working directory from
   // the first one in the list.
@@ -364,6 +365,14 @@ OverlayFileSystem::setCurrentWorkingDirectory(const Twine &Path) {
     if (std::error_code EC = FS->setCurrentWorkingDirectory(Path))
       return EC;
   return {};
+}
+
+IntrusiveRefCntPtr<OverlayFileSystem>
+vfs::createOverlayOnRealFilesystem(IntrusiveRefCntPtr<FileSystem> TopFS) {
+  IntrusiveRefCntPtr<OverlayFileSystem> OverlayFS =
+    new OverlayFileSystem(getRealFileSystem());
+  OverlayFS->pushOverlay(TopFS);
+  return OverlayFS;
 }
 
 clang::vfs::detail::DirIterImpl::~DirIterImpl() = default;
