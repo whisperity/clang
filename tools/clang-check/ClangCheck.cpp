@@ -138,7 +138,8 @@ public:
     if (ASTList)
       return clang::CreateASTDeclNodeLister();
     if (ASTDump)
-      return clang::CreateASTDumper(ASTDumpFilter, /*DumpDecls=*/true,
+      return clang::CreateASTDumper(nullptr, ASTDumpFilter,
+                                    /*DumpDecls=*/true,
                                     /*Deserialize=*/false,
                                     /*DumpLookups=*/false);
     if (ASTPrint)
