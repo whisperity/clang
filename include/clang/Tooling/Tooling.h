@@ -303,14 +303,16 @@ public:
   /// \param SourcePaths The source files to run over. If a source files is
   ///        not found in Compilations, it is skipped.
   /// \param PCHContainerOps The PCHContainerOperations for loading and creating
-  /// clang modules.
-  /// \param BaseFS VFS used for all underlying file accesses when running the
-  /// tool.
+  ///        clang modules.
+  /// \param FileSystem The Virtual File System that is used to retrieve file
+  ///        contents by the tool. In most cases, this should be an overlay upon
+  ///        the real file system. (See \p vfs::createOverlayOnRealFilesystem
+  ///        for easily creating an overlay.)
   ClangTool(const CompilationDatabase &Compilations,
             ArrayRef<std::string> SourcePaths,
             std::shared_ptr<PCHContainerOperations> PCHContainerOps =
                 std::make_shared<PCHContainerOperations>(),
-            IntrusiveRefCntPtr<vfs::FileSystem> BaseFS =
+            IntrusiveRefCntPtr<vfs::FileSystem> FileSystem =
                 vfs::getRealFileSystem());
 
   ~ClangTool();

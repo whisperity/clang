@@ -309,6 +309,11 @@ public:
   iterator overlays_end() { return FSList.rend(); }
 };
 
+/// \brief Creates a \p vfs::OverlayFileSystem which overlays the given file
+/// system above the 'real' file system, as seen by the operating system.
+IntrusiveRefCntPtr<OverlayFileSystem>
+createOverlayOnRealFilesystem(IntrusiveRefCntPtr<FileSystem> TopFS);
+
 namespace detail {
 
 class InMemoryDirectory;

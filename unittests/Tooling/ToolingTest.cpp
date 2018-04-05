@@ -402,22 +402,37 @@ TEST(ClangToolTest, ArgumentAdjusters) {
   EXPECT_FALSE(Found);
 }
 
-TEST(ClangToolTest, BaseVirtualFileSystemUsage) {
+TEST(ClangToolVFSTest, VirtualFileSystemUsage) {
   FixedCompilationDatabase Compilations("/", std::vector<std::string>());
-  llvm::IntrusiveRefCntPtr<vfs::OverlayFileSystem> OverlayFileSystem(
-      new vfs::OverlayFileSystem(vfs::getRealFileSystem()));
   llvm::IntrusiveRefCntPtr<vfs::InMemoryFileSystem> InMemoryFileSystem(
       new vfs::InMemoryFileSystem);
-  OverlayFileSystem->pushOverlay(InMemoryFileSystem);
 
   InMemoryFileSystem->addFile(
-      "a.cpp", 0, llvm::MemoryBuffer::getMemBuffer("int main() {}"));
+      "/a.cpp", 0, llvm::MemoryBuffer::getMemBuffer("int main() {}"));
 
-  ClangTool Tool(Compilations, std::vector<std::string>(1, "a.cpp"),
-                 std::make_shared<PCHContainerOperations>(), OverlayFileSystem);
+  ClangTool Tool(Compilations, std::vector<std::string>(1, "/a.cpp"),
+                 std::make_shared<PCHContainerOperations>(),
+                 InMemoryFileSystem);
   std::unique_ptr<FrontendActionFactory> Action(
       newFrontendActionFactory<SyntaxOnlyAction>());
   EXPECT_EQ(0, Tool.run(Action.get()));
+}
+
+TEST(ClangToolVFSTest, VFSDoesntContainEveryFile) {
+  FixedCompilationDatabase Compilations("/", std::vector<std::string>());
+  llvm::IntrusiveRefCntPtr<vfs::InMemoryFileSystem> InMemoryFileSystem(
+      new vfs::InMemoryFileSystem);
+
+  InMemoryFileSystem->addFile(
+      "/a.cpp", 0, llvm::MemoryBuffer::getMemBuffer("#include <cstdio>\n"
+                                                    "int main() {}"));
+
+  ClangTool Tool(Compilations, std::vector<std::string>(1, "/a.cpp"),
+                 std::make_shared<PCHContainerOperations>(),
+                 InMemoryFileSystem);
+  std::unique_ptr<FrontendActionFactory> Action(
+      newFrontendActionFactory<SyntaxOnlyAction>());
+  EXPECT_NE(0, Tool.run(Action.get()));
 }
 
 // Check getClangStripDependencyFileAdjuster doesn't strip args after -MD/-MMD.
